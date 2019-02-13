@@ -239,6 +239,14 @@ _zcl_attribute_data_types = {
 }
 
 
+_nwk_types = {
+    0: 'data',
+    1: 'command',
+    2: 'ack',
+    3: 'interpan'
+}
+
+
 # ZigBee #
 
 class ZigbeeNWK(Packet):
@@ -246,7 +254,7 @@ class ZigbeeNWK(Packet):
     fields_desc = [
         BitField("discover_route", 0, 2),
         BitField("proto_version", 2, 4),
-        BitEnumField("frametype", 0, 2, {0: 'data', 1: 'command'}),
+        BitEnumField("frametype", 0, 2, nwk_types),
         FlagsField("flags", 0, 8, ['multicast', 'security', 'source_route', 'extended_dst', 'extended_src', 'reserved1', 'reserved2', 'reserved3']),  # noqa: E501
         XLEShortField("destination", 0),
         XLEShortField("source", 0),
@@ -264,7 +272,7 @@ class ZigbeeNWK(Packet):
     ]
 
     def guess_payload_class(self, payload):
-        if self.flags & 0x02:
+        if self.flags.security:
             return ZigbeeSecurityHeader
         elif self.frametype == 0:
             return ZigbeeAppDataPayload
