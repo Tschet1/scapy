@@ -11,6 +11,7 @@ Python 2 and 3 link classes.
 from __future__ import absolute_import
 import base64
 import binascii
+import gzip
 import struct
 
 import scapy.modules.six as six
@@ -97,3 +98,15 @@ def bytes_base64(x):
     if six.PY2:
         return base64.encodestring(x).replace('\n', '')
     return base64.encodebytes(bytes_encode(x)).replace(b'\n', b'')
+
+
+if six.PY2:
+    from StringIO import StringIO
+
+    def gzip_decompress(x):
+        """Decompress using gzip"""
+        return gzip.GzipFile(fileobj=StringIO(x)).read()
+else:
+    def gzip_decompress(x):
+        """Decompress using gzip"""
+        return gzip.decompress(x)

@@ -10,6 +10,7 @@ PacketList: holds several packets and allows to do operations on them.
 
 from __future__ import absolute_import
 from __future__ import print_function
+import bisect
 import os
 from collections import defaultdict
 
@@ -25,8 +26,53 @@ from scapy.modules.six.moves import range, zip
 
 
 #############
+#   Utils   #
+#############
+
+# Smart idea to use bisect from https://stackoverflow.com/a/1320943/5459467
+
+class KeyOrderedDict(object):
+    """A dictionary that keeps its keys ordered, while avoiding
+    sorting on each operation.
+
+    Note: this should work on all Python versions (dictionaries have
+    different behaviors depending on the Python version)
+    """
+
+    __slots__ = ['dic', 'list']
+
+    def __init__(self, *args, **kwargs):
+        self.list = sorted(kwargs)
+        self.dic = kwargs
+
+    def __setitem__(self, k, v):
+        if k not in self.dic:
+            idx = bisect.bisect(self.list, k)
+            self.list.insert(idx, k)
+        self.dic[k] = v
+
+    def __getitem__(self, k):
+        return self.dic[k]
+
+    def __delitem__(self, k):
+        idx = bisect.bisect_left(self.list, k)
+        del self.list[idx]
+        del self.dic[k]
+
+    def __iter__(self):
+        return iter(self.list)
+
+    def __contains__(self, k):
+        return k in self.dic
+
+    def items(self, **kw):
+        return ((k, self[k]) for k in self.list)
+    iteritems = items
+
+#############
 #  Results  #
 #############
+
 
 class PacketList(BasePacketList, _CanvasDumpExtended):
     __slots__ = ["stats", "res", "listname"]
