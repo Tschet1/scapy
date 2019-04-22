@@ -47,4 +47,9 @@ This document is under a `Creative Commons Attribution - Non-Commercial
    troubleshooting
    development
    backmatter
- 
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+	source/scapy.rst
