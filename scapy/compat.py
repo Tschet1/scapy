@@ -105,8 +105,15 @@ if six.PY2:
 
     def gzip_decompress(x):
         """Decompress using gzip"""
-        return gzip.GzipFile(fileobj=StringIO(x)).read()
+        with gzip.GzipFile(fileobj=StringIO(x), mode='rb') as fdesc:
+            return fdesc.read()
+
+    def gzip_compress(x):
+        """Compress using gzip"""
+        buf = StringIO()
+        with gzip.GzipFile(fileobj=buf, mode='wb') as fdesc:
+            fdesc.write(x)
+        return buf.getvalue()
 else:
-    def gzip_decompress(x):
-        """Decompress using gzip"""
-        return gzip.decompress(x)
+    gzip_decompress = gzip.decompress
+    gzip_compress = gzip.compress

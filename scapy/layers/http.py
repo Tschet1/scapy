@@ -26,7 +26,7 @@ whole request/answer, use `TCPSession` as:
 
 import re
 
-from scapy.compat import plain_str, gzip_decompress
+from scapy.compat import plain_str, gzip_compress, gzip_decompress
 from scapy.config import conf
 from scapy.fields import StrField
 from scapy.packet import Packet, bind_layers, Raw
@@ -191,8 +191,7 @@ class _HTTPContent(Packet):
             import zlib
             pay = zlib.compress(pay)
         elif "gzip" in encodings:
-            import gzip
-            pay = gzip.compress(pay)
+            pay = gzip_compress(pay)
         elif "compress" in encodings:
             import lzw
             pay = lzw.compress(pay)
