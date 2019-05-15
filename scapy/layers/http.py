@@ -17,6 +17,13 @@ To follow HTTP packets streams = group packets together to get the
 whole request/answer, use `TCPSession` as:
 >>> sniff(session=TCPSession)  # Live on-the-flow session
 >>> sniff(offline="./http_chunk.pcap", session=TCPSession)  # pcap
+
+This will decode HTTP packets using `Content_Length` or chunks,
+and will also decompress the packets when needed.
+Note: on failure, decompression will be ignored.
+
+You can turn auto-decompression/auto-compression off with:
+>>> conf.contribs["http"]["auto_compression"] = True
 """
 
 # This file is a modified version of the former scapy_http plugin.
@@ -335,15 +342,26 @@ class HTTP(Packet):
             if length:
                 length = int(length)
                 # use Content-Length
-                process_func = lambda x, dat: (x, (len(dat + x) >= length))
+                process_func = lambda x, dat: (
+                    dat + x,
+                    len(dat + x) >= length
+                )
             else:
                 http_frag_h = header_frag[HTTP].payload
                 encodings = http_frag_h._get_encodings()
                 chunked = metadata["chunked"] = ("chunked" in encodings)
                 if chunked:
-                    process_func = lambda x, dat: (dat + x, x == b'')
+                    # Use chunks
+                    process_func = lambda x, dat: (
+                        dat + x,
+                        x == b''
+                    )
                 else:
-                    process_func = lambda x, dat: (dat + x, True)
+                    # Use nothing
+                    process_func = lambda x, dat: (
+                        dat + x,
+                        True
+                    )
             # Store it for future usage if needed
             metadata["process_func"] = process_func
         # We have an end function, try to build the packet
@@ -360,10 +378,10 @@ class HTTP(Packet):
                 if i != elt1 and isinstance(pay, _HTTPContent):
                     # Probably missing data, but we need to end now,
                     # because another element starts
-                    del processed_seqs[i]
+                    processed_seqs.remove(i)
                     for k in processed_seqs:
                         results.append(frags[k])
-                    processed_seqs = []
+                    processed_seqs = [i]
                     continue
             else:
                 # It could also be an extra Raw payload
