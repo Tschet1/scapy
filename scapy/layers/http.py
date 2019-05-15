@@ -100,10 +100,6 @@ def _dissect_headers(obj, s):
         _, value = header_line.split(b':', 1)
         obj.setfieldval(f.name, value.strip())
         del headers[canonical_name]
-    if headers:
-        # Kept for compatibility
-        obj.setfieldval('Additional_Headers',
-                        b'\r\n'.join(list(headers.values())) + b'\r\n')
     return first_line, body
 
 
@@ -255,9 +251,7 @@ class HTTPRequest(_HTTPContent):
                    StrField("Expires", None, fmt="H"),
                    StrField("Last_Modified", None, fmt="H"),
                    StrField("Cookie", None, fmt="H"),
-                   StrField("Headers", None, fmt="H"),
-                   # Deprecated
-                   StrField("Additional_Headers", None, fmt="H")]
+                   StrField("Headers", None, fmt="H")]
 
     def do_dissect(self, s):
         """From the HTTP packet string, populate the scapy object"""
@@ -301,9 +295,7 @@ class HTTPResponse(_HTTPContent):
                    StrField("Content_Type", None, fmt="H"),
                    StrField("Expires", None, fmt="H"),
                    StrField("Last_Modified", None, fmt="H"),
-                   StrField("Headers", None, fmt="H"),
-                   # Deprecated
-                   StrField("Additional_Headers", None, fmt="H")]
+                   StrField("Headers", None, fmt="H")]
 
     def do_dissect(self, s):
         ''' From the HTTP packet string, populate the scapy object '''
