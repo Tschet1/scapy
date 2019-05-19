@@ -7038,8 +7038,6 @@ assert isinstance(pkt[LLTDAttributeEOP].payload, NoPayload)
 = Packet build / dissection
 pkt = Ether(raw(Ether(dst=ETHER_BROADCAST, src=RandMAC()) / LLTD(tos=0, function=0)))
 assert LLTD in pkt
-assert pkt.dst == pkt.real_dst
-assert pkt.src == pkt.real_src
 assert pkt.tos == 0
 assert pkt.function == 0
 
@@ -10652,15 +10650,6 @@ assert not any(getattr(p1.flags | p2.flags, f) for f in 'FRPECN')
 
 assert TCP(flags="SA").flags & TCP(flags="S").flags == TCP(flags="S").flags
 assert TCP(flags="SA").flags | TCP(flags="S").flags == TCP(flags="SA").flags
-
-= Using tuples and lists as flag values
-~ IP TCP
-
-plist = PacketList(list(IP()/TCP(flags=(0, 2**9 - 1))))
-assert [p[TCP].flags for p in plist] == [x for x in range(512)]
-
-plist = PacketList(list(IP()/TCP(flags=["S", "SA", "A"])))
-assert [p[TCP].flags for p in plist] == [2, 18, 16]
 
 
 ############
